@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 var cityData =
 {
   "data": [
@@ -124,8 +124,9 @@ function App() {
   const [total, setTotal] = useState();
   const [perPage, setPerPage] = useState();
   const [dropDown, setDropDown] = useState(2);
+  const [cityData, setCityData] = useState({});
   const habdleGrepCityTextChange = (event) => setGrepCityText(event.target.value);
-  var data = cityData.data;
+  var data = cityData.data || [];
   if (grepCityText) {
     data = data.filter(item => item.city.indexOf(grepCityText) > -1);
   }
@@ -153,6 +154,30 @@ function App() {
     );
   });
 
+  async function fetchData(page, dropDownValue) {
+    const url = 'https://wft-geo-db.p.rapidapi.com/v1/geo/cities';
+    const options = {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': '6e81f396fbmsh358c4a95ed8c662p1e67c0jsn71c550052d2e',
+        'x-rapidapi-host': 'wft-geo-db.p.rapidapi.com'
+      }
+    };
+    const apiData = await fetch(url, options);
+    //const result = await response.text();
+    apiData
+      .json()
+      .then(
+        value => (
+          setCityData(value)
+        )
+      );
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   let len = renderPageNumbers.length;
   const handleNextClick = (currentPage, dropDown) => {
     if (currentPage <= renderPageNumbers.length) {
@@ -163,7 +188,6 @@ function App() {
   return (
     <div className="App">
       <input type="text" placeholder="Enter search string" value={grepCityText} onChange={habdleGrepCityTextChange} />
-      <p>{grepCityText}</p>
       <div className="App-table"> {data.length > 0 ? (
         <table className="table-container">
           <thead><td>Serial</td><td>City</td><td>Country</td></thead>
